@@ -19,7 +19,7 @@ users = Table('channels', metadata,
 
 metadata.create_all(engine)
 
-print("success")
+##print("success")
 
 Base = declarative_base() # inherit from this class to create ORM models
 

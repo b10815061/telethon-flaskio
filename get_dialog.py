@@ -4,17 +4,21 @@ import model
 from model import channels
 from dbconfig import engine
 import telethon
+from flask_socketio import emit
 
 async def get(client):
     dialogs = await client.get_dialogs()
     for i in range(len(dialogs)):
-        
         if(type(dialogs[i].message.peer_id)==telethon.tl.types.PeerChannel):
-            print(dialogs[i].message.peer_id)
+            #print(dialogs[i].message.peer_id)
+            #emit('dialog',dialogs)
             await insert_user_channel(dialogs[i].message.peer_id.channel_id,i)
+        elif(type(dialogs[i].message.peer_id)==telethon.tl.types.PeerChat):
+            #print(dialogs[i].message.peer_id)
+            await insert_user_channel(dialogs[i].message.peer_id.chat_id,i)
         else:
-            print(dialogs[i].message.peer_id)
-            print(dialogs[i].message.peer_id.user_id)
+            #print(dialogs[i].message.peer_id)
+            #print(dialogs[i].message.peer_id.user_id)
             await insert_user_channel(dialogs[i].message.peer_id.user_id,i)
             
         #messages = await client.get_messages(dialogs[i].id,limit=400)
@@ -38,11 +42,11 @@ async def insert_user_channel(input_channel,input_pri):
             return
         
         
-        for row in exist:   
-            print(row.user_id, end=" ")
-            print(row.channel_id, end=" ")
-            print(row.priority)
+        #for row in exist:   
+            #print(row.user_id, end=" ")
+            #print(row.channel_id, end=" ")
+            #print(row.priority)
         
-        print("\n")
+        #print("\n")
         
         

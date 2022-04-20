@@ -1,25 +1,23 @@
 from telethon import events
 import asyncio
-#from router import socketio
+from flask_socketio import emit
 
-def listen(client):
+def listen(client,socketio):
     @client.on(events.NewMessage())
     async def event_handelr(evt):
         channel = await evt.get_chat()
-        print(channel)
-        print(channel.id)
+        print("listening")
+        '''print(channel)
+        print(channel.id)'''
         
-        msgs =(await client.get_messages(channel.id,limit=5))
+        msgs =(await client.get_messages(channel.id,limit=1))
         
         for msg in msgs:
             print(msg.message)
+        
+        socketio.emit('my_response',{'data':msg.message,'count':channel.id})
         
         
         if(evt.raw_text=="disconnect"):
             print("goodbye")
             await client.disconnect()
-        print(evt.raw_text)
-        #socketio.emit('rcv_telegram_message',evt.raw_text)
-        await asyncio.sleep(2)
-        ### delete the input message
-        await client.delete_messages(evt.chat_id,[evt.id])

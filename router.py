@@ -3,6 +3,8 @@ from flask import Flask, render_template, session
 from flask_socketio import SocketIO, emit
 import requests
 
+
+
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
@@ -22,11 +24,10 @@ def background_thread():
     while True:
         socketio.sleep(3)
         count += 1
-        price = ((requests.get(url)).json())['data']['amount']
+        #price = ((requests.get(url)).json())['data']['amount']
        
-        #telegram.main()
-        socketio.emit('my_response',
-                      {'data': 'Bitcoin current price (USD): ' + price, 'count': count})
+        #socketio.emit('my_response',
+                      #{'data': 'Bitcoin current price (USD): ' + price, 'count': count})
 
 
 
@@ -35,16 +36,24 @@ def background_thread():
 @app.route('/')
 def index():
     return render_template('index.html', async_mode=socketio.async_mode)
-
+'''
 @socketio.on('rcv_telegram_message')
 def handler_telegram_message(data):
     print('rcv telegram msg')
     emit('my_response',{'data:':data,'count':session['receive_count']})
+
     
+@socketio.event
+def dialog(dialog):
+    print(dialog)
+    emit('my_response',
+        {'data':dialog})
+'''
 
 @socketio.event
 def my_event(message):
     session['receive_count'] = session.get('receive_count', 0) + 1
+    print(message)
     emit('my_response',
          {'data': message['data'], 'count': session['receive_count']})
 
@@ -63,10 +72,19 @@ def handle_broadcast(data):
 @socketio.event
 def connect():
     global thread
+    '''
     with thread_lock:
         if thread is None:
             thread = socketio.start_background_task(background_thread)
     emit('my_response', {'data': 'Connected', 'count': 0})
+    '''
+    
+
+def start():
+    print('b4')
+    print(__name__)
+    socketio.run(app)
+    print('after')
 
 if __name__ == '__main__':
-    socketio.run(app)
+    start()
