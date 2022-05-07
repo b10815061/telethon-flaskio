@@ -1,5 +1,9 @@
+from ast import expr_context
 from asyncio.windows_events import NULL
+import base64
+from io import BytesIO
 from pydoc import cli
+from PIL import Image
 from turtle import back
 from telethon import TelegramClient,events,functions
 import telethon
@@ -8,6 +12,8 @@ from unsync import unsync
 import dbconfig,psycopg2,listen,get_dialog
 import get_message
 from telethon.tl.functions.users import GetFullUserRequest
+from telethon.tl.types import PeerUser
+from util import utils
 import threading
 from threading import Lock
 from flask import Flask, render_template, session
@@ -16,6 +22,7 @@ import time
 import multiprocessing as mp
 import eventlet
 import DB
+import os
 
 async_mode = None
 client = None
@@ -32,6 +39,7 @@ PID = ""
 
 api_id = 12655046
 api_hash = 'd84ab8008abfb3ec244630d2a6778fc6'
+image_path = "images"
 
 
 @socketio.event
@@ -69,13 +77,11 @@ def handle_message(message):
     socketio.sleep(.1)
 
 def test_thread():
-    print("test_thread")
     async def work():
         global client
         global phone
         if phone=="":
             return
-        print("work")
         socketio.sleep(.1)
         socketio.emit('my_response',{'data':'phone : ' + phone,'count':'System'})
         try:
@@ -93,9 +99,40 @@ def test_thread():
                     socketio.sleep(3)
                     print("code : " + code)
                 await client.sign_in(phone,code)
+            me = await client.get_me()
             socketio.emit('my_response',{'data':'connected!','count':'System'})
             await client.send_message('me','conn')
-            #await get_dialog.get(client)
+            await get_dialog.get(client)
+
+            chan = await get_dialog.retrive_all(me.id)
+
+            for c in chan :
+                print(c.channel_id)
+                try:
+                    with open(f'./images/{c.channel_id}.png','rb')as f:
+                            image_data = f.read()
+                            socketio.sleep(.1)
+                            b64 = base64.b64encode(image_data).decode()
+                            chat_id = c.channel_id
+                            try:
+                                user_name = (await client.get_entity(int(chat_id))).title
+                                print(user_name)
+                                pri = await get_dialog.retrive_prior(me.id,chat_id)
+
+                            except:
+                                U = await client.get_entity(int(chat_id))
+                                user_name = utils.name2str(U.first_name) + " " + utils.name2str(U.last_name)
+                                pri = await get_dialog.retrive_prior(me.id,chat_id)
+                                print(f'cannot get {chat_id}')
+                            socketio.sleep(.1)
+                            socketio.emit('image',{'data':b64,'name':user_name,'pri':pri})
+                            socketio.sleep(.1)
+                            print(f'{c.channel_id} sent')
+                except:
+                    print("not found image")
+                print("DONE SENDING IMAGE")
+
+           
             
             ### listening on the message , print out the sender channel
             while client.is_connected():
@@ -110,11 +147,19 @@ def test_thread():
                     msg = msgs[0]
                     
                     if(msg.id!=tmpID):
+                        print(f'CHANNEL ID : {channel.id}')
+                        print(f'MSG {msg}')
                         print(tmpID)
                         print(msg.id)
                         tmpID = msg.id
+                        client.parse_method = 'html'
+                        print(msg)
                         socketio.sleep(.1)
-                        socketio.emit('my_response',{'data':msg.message,'count':channel.id})
+                        try:    
+                            rtnName = channel.title
+                        except:
+                            rtnName = channel.id
+                        socketio.emit('my_response',{'data':msg.message,'count':rtnName})
                         socketio.sleep(.1)
                     
                     
