@@ -25,7 +25,22 @@
             // to the client. The data is then displayed in the "Received"
             // section of the page.
             socket.on('my_response', function(msg, cb) {
-                $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+                $('#log').append('<br>' + $('<div/>').text(msg.count + ': ' + msg.data).html());
+                if(msg.count!==undefined&&msg.count!=="System"){
+                $("#channel_id").val(msg.count)
+                }
+                if(msg.data=="please enter code in the message field"){
+                    $('#message_data').val("")
+                    $('#message_data').attr("placeholder","Enter Code")
+                    $('#channel_id').val("Code")
+                    $('#channel_id').attr("disabled",true)
+                }
+                if(msg.data=="connected!"&&msg.count=="System"){
+                    $('#channel_id').val("")
+                    $('#channel_id').attr("disabled",false)
+                    $('#message_data').val("")
+                    $('#message_data').attr("placeholder","Message")
+                }
                 if (cb)
                     cb();
             });
@@ -58,11 +73,11 @@
             // These accept data from the user and send it to the server in a
             // variety of ways
             $('form#emit').submit(function(event) {
-                socket.emit('connect_to_telegram', {data: $('#emit_data').val()});
+                socket.emit('connect_to_telegram', {data: $('#phone').val()});
                 return false;
             });
             $('form#message').submit(function(event) {
-                socket.emit('message', {data: $('#message_data').val()});
+                socket.emit('message', {data: $('#message_data').val(),cid: $('#channel_id').val()});
                 return false;
             });
             $('form#send_room').submit(function(event) {
@@ -95,13 +110,15 @@
     </p>
     <h2>Send:</h2>
     <form id="emit" method="POST" action='#'>
-        <input type="text" name="emit_data" id="emit_data" placeholder="Message">
+        <input type="text" name="phone" id="phone" placeholder="Enter phone">
         <input type="submit" value="connect">
     </form>
     <form id="message" method="POST" action='#'>
+        <input type="text" name="channel_id" id="channel_id" placeholder="channel">
         <input type="text" name="message_data" id="message_data" placeholder="Message">
         <input type="submit" value="message">
     </form>
+    <!--
     <form id="send_room" method="POST" action='#'>
         <input type="text" name="room_name" id="room_name" placeholder="Room Name">
         <input type="text" name="room_data" id="room_data" placeholder="Message">
@@ -114,6 +131,7 @@
     <form id="disconnect" method="POST" action="#">
         <input type="submit" value="Disconnect">
     </form>
+    -->
     <form id="dis_telegram" method="POST" action="#">
         <input type="submit" value="disconnect_from telegram">
     </form>

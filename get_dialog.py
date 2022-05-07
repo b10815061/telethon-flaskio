@@ -4,9 +4,10 @@ import model
 from model import channels
 from dbconfig import engine
 import telethon
-from flask_socketio import emit
 
 async def get(client):
+    me = await client.get_me()
+    print(me)
     dialogs = await client.get_dialogs()
     for i in range(len(dialogs)):
         if(type(dialogs[i].message.peer_id)==telethon.tl.types.PeerChannel):

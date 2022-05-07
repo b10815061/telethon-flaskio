@@ -6,7 +6,7 @@ def listen(client,socketio):
     @client.on(events.NewMessage())
     async def event_handelr(evt):
         channel = await evt.get_chat()
-        print("listening")
+        #print("listening")
         '''print(channel)
         print(channel.id)'''
         
